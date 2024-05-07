@@ -6,6 +6,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.kkyoungs.githubrepository.databinding.ActivityMainBinding
 import com.kkyoungs.githubrepository.model.Repo
 import com.kkyoungs.githubrepository.model.UserDto
 import com.kkyoungs.githubrepository.network.GithubService
@@ -17,9 +19,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var binding :ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.github.com/")
@@ -37,9 +41,17 @@ class MainActivity : AppCompatActivity() {
 
         })
 
+
+        val userAdapter = UserAdapter()
+        binding.userRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = userAdapter
+        }
         githubService.searchUsers("squar").enqueue(object :Callback<UserDto>{
             override fun onResponse(call: Call<UserDto>, response: Response<UserDto>) {
                 Log.e("MainActivity", "Search User" +response.body().toString())
+                userAdapter.submitList(response.body()?.items)
+
             }
 
             override fun onFailure(call: Call<UserDto>, t: Throwable) {
@@ -47,4 +59,6 @@ class MainActivity : AppCompatActivity() {
 
         })
     }
+
+
 }
